@@ -32,6 +32,7 @@ class Banphrase(Base):
     enabled = Column(BOOLEAN, nullable=False, default=True)
     sub_immunity = Column(BOOLEAN, nullable=False, default=False, server_default=sqlalchemy.sql.expression.false())
     operator = Column(TEXT, nullable=False, default="contains", server_default="contains")
+    enable_by_stream_status = Column(TEXT, nullable=False, default="both", server_default="both")
 
     data = relationship("BanphraseData", uselist=False, cascade="", lazy="joined")
 
@@ -48,6 +49,7 @@ class Banphrase(Base):
         self.case_sensitive = False
         self.enabled = True
         self.operator = "contains"
+        self.enable_by_stream_status = "both"
         self.remove_accents = False
         self.compiled_regex = None
         self.predicate = None
@@ -65,10 +67,12 @@ class Banphrase(Base):
         self.sub_immunity = options.get("sub_immunity", self.sub_immunity)
         self.enabled = options.get("enabled", self.enabled)
         self.operator = options.get("operator", self.operator)
+        self.enable_by_stream_status = options.get("enable_by_stream_status", self.enable_by_stream_status)
         self.remove_accents = options.get("remove_accents", self.remove_accents)
         self.compiled_regex = None
 
         self.refresh_operator()
+        self.refresh_enable_by_stream_status()
 
     def format_message(self, message):
         if self.case_sensitive is False:
@@ -95,6 +99,9 @@ class Banphrase(Base):
                     self.compiled_regex = re.compile(self.phrase, flags=re.IGNORECASE)
             except Exception:
                 log.exception(f"Unable to compile regex: {self.phrase}")
+
+    def refresh_enable_by_stream_status(self):
+        """pajlada pls help BibleThump"""
 
     def predicate_contains(self, message):
         return self.get_phrase() in self.format_message(message)
@@ -156,6 +163,7 @@ class Banphrase(Base):
             "length": self.length,
             "permanent": self.permanent,
             "operator": self.operator,
+            "enable_by_stream_status": self.enable_by_stream_status,
             "case_sensitive": self.case_sensitive,
         }
 
@@ -163,11 +171,13 @@ class Banphrase(Base):
 @sqlalchemy.event.listens_for(Banphrase, "load")
 def on_banphrase_load(target, _context):
     target.refresh_operator()
+    target.refresh_enable_by_stream_status()
 
 
 @sqlalchemy.event.listens_for(Banphrase, "refresh")
 def on_banphrase_refresh(target, _context, _attrs):
     target.refresh_operator()
+    target.refresh_enable_by_stream_status()
 
 
 class BanphraseData(Base):
@@ -384,6 +394,7 @@ class BanphraseManager:
         parser.add_argument("--removeaccents", dest="remove_accents", action="store_true")
         parser.add_argument("--no-removeaccents", dest="remove_accents", action="store_false")
         parser.add_argument("--operator", dest="operator", type=str)
+        parser.add_argument("--streamstatus", dest="enable_by_stream_status", type=str)
         parser.add_argument("--name", nargs="+", dest="name")
         parser.set_defaults(
             length=None,
@@ -394,6 +405,7 @@ class BanphraseManager:
             sub_immunity=None,
             remove_accents=None,
             operator="contains",
+            enable_by_stream_status="both",
         )
 
         try:

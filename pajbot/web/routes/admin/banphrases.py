@@ -53,6 +53,7 @@ def init(page):
                 length = int(request.form["length"])
                 phrase = request.form["phrase"]
                 operator = request.form["operator"].strip().lower()
+                enabled_by_stream_status = request.form["enabled_by_stream_status"].strip().lower()
             except (KeyError, ValueError):
                 abort(403)
 
@@ -76,6 +77,10 @@ def init(page):
             if operator not in valid_operators:
                 abort(403)
 
+            valid_stream_statuses = ["online", "offline", "both"]
+            if enabled_by_stream_status not in valid_stream_statuses:
+                abort(403)
+
             user = options.get("user", None)
 
             if user is None:
@@ -94,6 +99,7 @@ def init(page):
                 "added_by": user.id,
                 "edited_by": user.id,
                 "operator": operator,
+                "enabled_by_stream_status": enabled_by_stream_status
             }
 
             if id is None:

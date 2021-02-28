@@ -36,6 +36,14 @@
                 <option {{ 'selected="selected" ' if banphrase and banphrase.operator == 'regex' else '' }}value="regex">Regex</option>
             </select>
         </div>
+        <div class="field ui four wide required">
+            <label>Enable the banphrase when the stream is:</label>
+            <select class="ui dropdown" name="enable_by_stream_status">
+                <option {{ 'selected="selected" ' if banphrase and banphrase.enable_by_stream_status == 'online' else '' }}value="online">Online Only</option>
+                <option {{ 'selected="selected" ' if banphrase and banphrase.enable_by_stream_status == 'offline' else '' }}value="offline">Offline Only</option>
+                <option {{ 'selected="selected" ' if banphrase and banphrase.enable_by_stream_status == 'both' else '' }}value="both">Offline and Online</option>
+            </select>
+        </div>
     </div>
     <div class="fields">
         <div class="field inline ui checkbox four wide">
