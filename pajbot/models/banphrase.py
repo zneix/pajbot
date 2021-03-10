@@ -165,6 +165,8 @@ class Banphrase(Base):
             "operator": self.operator,
             "enable_by_stream_status": self.enable_by_stream_status,
             "case_sensitive": self.case_sensitive,
+            "sub_immunity": self.sub_immunity,
+            "remove_accents": self.remove_accents,
         }
 
 
